@@ -12,7 +12,9 @@ const todos = [
   },
   {
     text: "Second test todo",
-    _id: new ObjectId()
+    _id: new ObjectId(),
+    complete: true,
+    completedAt: 3333
   }
 ];
 
@@ -153,5 +155,62 @@ describe('DELETE /todos/:id', () => {
             .delete(`/todos/${new ObjectId().toHexString()}`)
             .expect(404)
             .end(done);
+    })
+});
+
+describe('PATCH /todos/:id', () => {
+    it("should update the todo", (done) => {
+        const body = {
+            completed: true,
+            text: "YELLAAOWW!!"
+        }
+        request(app)
+            .patch(`/todos/${todos[0]._id}`)
+            .send(body)
+            .expect(200)
+            .expect(res => {
+                expect(res.body.todo.text).toBe(body.text);
+                expect(res.body.todo.completed).toBe(true);
+                expect(typeof res.body.todo.completedAt).toBe('number');
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+                Todo.findById(todos[0]._id).then(todo => {
+                    expect(todo.text).not.toBe(todos[0]._id);
+                    expect(todo.completed).toBe(true);
+                    expect(typeof todo.completedAt).toBe("number");
+                    done();
+                }).catch(e => done(e));
+            });
+
+    });
+
+    it("should clear completedAt when todo is not completed", done => {
+        const body = {
+            text: "YELLAAOWW!! SAMMY HERE!!"
+        }
+
+        request(app)
+            .patch(`/todos/${todos[1]._id}`)
+            .send(body)
+            .expect(200)
+            .expect(res => {
+                expect(res.body.todo.text).toBe(body.text);
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.completedAt).toBe(null);
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+                Todo.findById(todos[1]._id).then(todo => {
+                    expect(todo.text).not.toBe(todos[1].text);
+                    expect(todo.completed).toBe(false);
+                    expect(todo.completedAt).toBe(null);
+                    done();
+                }).catch(e => done(e));
+            })
     })
 })
