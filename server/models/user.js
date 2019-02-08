@@ -89,8 +89,6 @@ UserSchema.statics.findByCredentials = function(email, password) {
   })
 };
 
-
-
 //INSTANCE METHODS
 UserSchema.methods.generateAuthToken = function() {
   let user = this;
