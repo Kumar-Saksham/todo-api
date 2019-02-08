@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -37,20 +37,20 @@ const UserSchema = new mongoose.Schema({
 });
 
 //MONGOOSE MIDDLEWARE
-UserSchema.pre('save', function (next) {
+UserSchema.pre("save", function(next) {
   const user = this;
 
-  if(user.isModified('password')){
+  if (user.isModified("password")) {
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();
-      })
-    })
+      });
+    });
   } else {
     next();
   }
-})
+});
 
 //MODEL METHODS
 UserSchema.statics.findByToken = function(token) {
@@ -73,20 +73,20 @@ UserSchema.statics.findByCredentials = function(email, password) {
   const user = this;
 
   return User.findOne({ email }).then(user => {
-    if(!user){
+    if (!user) {
       return Promise.reject();
     }
 
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, user.password, (err, res) => {
-        if(res){
+        if (res) {
           resolve(user);
         } else {
           reject();
         }
-      })
-    })
-  })
+      });
+    });
+  });
 };
 
 //INSTANCE METHODS
@@ -109,6 +109,16 @@ UserSchema.methods.toJSON = function() {
   var userObject = user.toObject();
 
   return _.pick(userObject, ["_id", "email"]);
+};
+
+UserSchema.methods.removeToken = function(token) {
+  const user = this;
+
+  return user.update({
+    $pull: {
+      tokens: { token }
+    }
+  });
 };
 
 const User = mongoose.model("User", UserSchema);
