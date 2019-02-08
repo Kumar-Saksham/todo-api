@@ -6,6 +6,7 @@ const { ObjectId } = require("mongodb");
 const _ = require("lodash");
 
 const { mongoose } = require("./db/mongoose");
+const { authenticate } = require('./middleware/authenticate');
 
 const { Todo } = require("./models/todo");
 const { User } = require("./models/user");
@@ -114,6 +115,8 @@ app.patch("/todos/:id", (req, res) => {
   );
 });
 
+
+
 //USERS
 app.post("/users", (req, res) => {
   const body = _.pick(req.body, ["email", "password"]);
@@ -126,6 +129,12 @@ app.post("/users", (req, res) => {
     res.header('x-auth', token).send(user);
   }).catch(e => res.status(400).send(e));
 });
+
+
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+})
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
