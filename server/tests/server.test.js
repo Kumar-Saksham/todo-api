@@ -222,7 +222,6 @@ describe("GET /users/me", () => {
     });
 });
 
-
 describe("POST /users", () => {
     it("should create a user", done => {
         const testUser = { email: "test@example.com", password: 'password' };
